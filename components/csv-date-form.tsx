@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
+import AttendanceResultsTable from '@/components/attendance-results-table'
 
 export default function CSVDateForm() {
   const [csvData, setCsvData] = useState('')
@@ -20,7 +21,7 @@ export default function CSVDateForm() {
     setResult(null)
 
     try {
-      const response = await fetch('/api/csv-processing', {
+      const response = await fetch('/api/process-csv', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -33,41 +34,11 @@ export default function CSVDateForm() {
       }
 
       const data = await response.json()
-      console.log(data)
       setResult(data.days)
     } catch (err) {
       setError('Failed to process data. Please check your input and try again.')
       console.error('Error submitting data:', err)
     }
-  }
-
-  const groupByWeeks = (days: { date: string; am: string; pm: string }[]) => {
-    const weeks: { weekStartDate: string; weekMarks: string[] }[] = []
-    let currentWeekMarks: string[] = []
-    let currentWeekStartDate: string | null = null
-
-    days.forEach((day, index) => {
-      const date = new Date(day.date)
-      const dayOfWeek = date.getDay() // Sunday = 0, Monday = 1, ..., Saturday = 6
-
-      if (dayOfWeek === 0 || !currentWeekStartDate) {
-        // Start a new week
-        if (currentWeekStartDate) {
-          weeks.push({ weekStartDate: currentWeekStartDate, weekMarks: currentWeekMarks })
-        }
-        currentWeekStartDate = day.date
-        currentWeekMarks = []
-      }
-
-      // Add AM and PM marks for the day
-      currentWeekMarks.push(day.am || "", day.pm || "")
-    })
-
-    if (currentWeekStartDate) {
-      weeks.push({ weekStartDate: currentWeekStartDate, weekMarks: currentWeekMarks })
-    }
-
-    return weeks
   }
 
   return (
@@ -112,36 +83,7 @@ export default function CSVDateForm() {
         </div>
       )}
 
-      {result && (
-        <div className="mt-6">
-          <h2 className="text-lg font-semibold mb-4">Result</h2>
-          <table className="min-w-full table-auto border-collapse border border-gray-300">
-            <thead>
-              <tr>
-                <th className="border border-gray-300 px-4 py-2">Week Start Date</th>
-                {["Mon AM", "Mon PM", "Tue AM", "Tue PM", "Wed AM", "Wed PM", "Thu AM", "Thu PM", 
-                  "Fri AM", "Fri PM", "Sat AM", "Sat PM", "Sun AM", "Sun PM"].map((day, index) => (
-                  <th key={index} className="border border-gray-300 px-4 py-2">{day}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {groupByWeeks(result).map((week, weekIndex) => (
-                <tr key={weekIndex}>
-                  <td className="border border-gray-300 px-4 py-2 text-center font-bold">
-                    {week.weekStartDate}
-                  </td>
-                  {week.weekMarks.map((mark, markIndex) => (
-                    <td key={markIndex} className="border border-gray-300 px-4 py-2">
-                      {mark}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <AttendanceResultsTable data={result} />
     </div>
   )
 }

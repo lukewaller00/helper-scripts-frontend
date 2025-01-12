@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
         // Validate Input
         if (!csvData || !startDate || !endDate) {
             return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
-          }
+        }
 
         // Further Validation of Dates
         const start = new Date(startDate);
@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
         const marks = csvData.split(",").map((mark: string) => mark.trim());
         console.log("Parsed marks:", marks);
 
-         // Match marks to valid dates
+        // Match marks to valid dates
         const days = attendanceDates.map((date, index) => ({
             date,
             am: marks[index * 2] || "", // Get the AM mark for the current day
